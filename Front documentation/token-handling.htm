@@ -1,0 +1,14 @@
+<hr>
+
+<p>This code snippet defines an interface called <code>Token</code> with two properties: <code>access_token</code> and <code>refresh_token</code>, both of which are of type string.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapptokentsx">📄 front/eventify/src/app/Token.tsx</h3>
+<pre><code class="language-tsx">1      export default interface Token{
+2          access_token : string,
+3          refresh_token : string
+4      }
+</code></pre>
+<br/>
+
+<p>The token is what allows the application to know when a user is logged. Thanks to the communication between front and back end, it gets generated when someone logs in and it gets destroyed when someone logs out</p>
+<br/>

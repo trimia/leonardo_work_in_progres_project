@@ -1,0 +1,506 @@
+<hr>
+
+<p>All events are handled as cards. First of all there is a interface that defines a card.</p>
+<br/>
+
+<p>This code snippet defines an interface called <code>CardProps</code> that specifies the structure of an object representing a card. The card has properties such as <code>id</code>, <code>title</code>, <code>description</code>, <code>place</code>, <code>owner</code>, <code>datetime</code>, <code>image</code>, <code>tags</code>, and <code>key</code>.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappcardpropstsx">📄 front/eventify/src/app/cardProps.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">1      export interface CardProps {
+2          id: number
+3          title: String;
+4          description: String;
+5          place: String;
+6          owner: String;
+7          datetime: string;
+8          image: string[];
+9          tags: String[] | null;
+10         key: number | undefined
+11     }
+</code></pre>
+<br/>
+
+<p>The next part shows how a card is rendered</p>
+<br/>
+
+<p>This code snippet defines a <code>MyCard</code> component that renders a card with an image carousel. It uses the <code>useDisclosure</code> hook to manage the open/close state of the card, and the <code>useState</code> hook to manage the registered state and user list. The <code>props</code> argument contains the data for the card, including an array of image URLs. The <code>slides</code> variable maps over the image URLs to create carousel slides with images. The <code>date</code> variable creates a <code>Date</code> object from the <code>datetime</code> prop. The <code>formatDate</code> variable formats the date as a string. The <code>router</code> variable uses the <code>useRouter</code> hook for routing functionality.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappcardtsx">📄 front/eventify/src/app/card.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">20     export default function MyCard(props: CardProps) {
+21         const [opened, {open, close}] = useDisclosure(false);
+22         const [registered, setRegistered] = useState(false);
+23         const [userList, setUserList] = useState&lt;user | null&gt;(null);
+24         const slides = props.image?.map((url) =&gt; (
+25             &lt;Carousel.Slide key={url}&gt;
+26                 &lt;img alt=&quot;&quot; src={url} /&gt;
+27             &lt;/Carousel.Slide&gt;
+28         ));
+29         const date = new Date(props.datetime)
+30         const router = useRouter()
+31         let formatDate = `${date.getDate() &lt; 10 ? &quot;0&quot; + date.getDate() : date.getDate()}/${(date.getMonth() + 1) &lt; 10 ? &quot;0&quot; + (date.getMonth() + 1) : (date.getMonth() + 1)}/${date.getFullYear()} \
+32         ${date.getHours() &lt; 10 ? &quot;0&quot; + date.getHours() : date.getHours()}:${date.getMinutes() &lt; 10 ? &quot;0&quot; + date.getMinutes() : date.getMinutes()}`
+33
+</code></pre>
+<br/>
+
+<p>This code snippet defines three asynchronous functions: <code>get_list</code>, <code>register</code>, and <code>unregister</code>.</p>
+<ul>
+    <li><p>The <code>get_list</code> function makes a POST request to a specific endpoint with headers and a request body. If the response is successful, it retrieves the response data and sets it as the user list.</p>
+    </li>
+    <li><p>The <code>register</code> function checks if the user is not registered and then makes a POST request to a specific endpoint with headers and a request body. It returns a boolean value indicating the success or failure of the request.</p>
+    </li>
+    <li><p>The <code>unregister</code> function checks if the user is registered and then makes a POST request to a specific endpoint with headers and a request body.</p>
+    </li>
+</ul>
+<p>These functions are designed to interact with an API to fetch data, register users to an event, and unregister users from an event.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappcardtsx-1">📄 front/eventify/src/app/card.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">34         async function get_list(){
+35             try {
+36                 const response = await fetch(&#39;http://localhost:8080/api/users/findSubscribedUser&#39;, {
+37                     method: &#39;POST&#39;,
+38                     headers: {
+39                         &#39;Content-Type&#39;: &#39;application/json&#39;,
+40                         &#39;Authorization&#39;: `Bearer ${Cookies.get(&quot;token&quot;)}`,
+41                     },
+42                     body: JSON.stringify({&quot;id&quot; : props.id, &quot;registered&quot;: true}),
+43                 });
+44                     if (response.ok) {
+45                     const userList = await response.json();
+46                     setUserList(userList);
+47                 }
+48             } catch (e : any) {
+49
+50                 }
+51             }
+52
+53         async function register() {
+54             if (!registered) {
+55                 const url = &quot;http://localhost:8080/api/event/registerUserToEvent&quot;
+56                 let access_token: string | undefined = Cookies.get(&quot;token&quot;);
+57                 if (access_token !== undefined) {
+58                     let jwt: { sub: string, iat: number, exp: number, jti: string } = jwtDecode(access_token);
+59                     let email: string = jwt.sub;
+60                     await fetch(url, {
+61                             method: &quot;POST&quot;,
+62                             headers: {
+63                                 &quot;Authorization&quot;: `Bearer ${access_token}`,
+64                                 &quot;Content-Type&quot;: &quot;application/json&quot;
+65                             },
+66                             body: JSON.stringify({id: props.id, email: email})
+67                         }
+68                     ).then((response) =&gt; {
+69                         if (response.status === 200) {
+70                             return true
+71                         }
+72                         if (response.status != 200) {
+73                             return false
+74                         }
+75                         return response.json()
+76                     }).catch()
+77                 }
+78             }
+79         }
+80
+81         async function unregister() {
+82             if (registered) {
+83                 const url = &quot;http://localhost:8080/api/event/unregisterUserToEvent&quot;
+84                 let access_token: string | undefined = Cookies.get(&quot;token&quot;);
+85                 if (access_token !== undefined) {
+86                     let jwt: { sub: string, iat: number, exp: number, jti: string } = jwtDecode(access_token);
+87                     let email: string = jwt.sub;
+88                     await fetch(url, {
+89                             method: &quot;POST&quot;,
+90                             headers: {
+91                                 &quot;Authorization&quot;: `Bearer ${access_token}`,
+92                                 &quot;Content-Type&quot;: &quot;application/json&quot;
+93                             },
+94                         body: JSON.stringify({id: props.id, email: email})
+95                         }
+96                     ).then( async (response) =&gt; {
+97                         if (response.status === 200) {
+98                             setRegistered(false);
+99                         }
+100                        if (response.status != 200) {
+101                            return false
+102                        }
+103                        await get_list();
+104                    }).catch()
+105                }
+106            }
+107        }
+108
+109        useEffect(() =&gt; {
+110            get_list()
+111        }, []);
+112
+</code></pre>
+<br/>
+
+<p>This code snippet returns a JSX component that renders a card with various elements such as a carousel, text sections, buttons, and conditional rendering based on the &quot;registered&quot; state. The card displays a title, tags, description, date, place, and buttons for more information and registration/unregistration.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappcardtsx-2">📄 front/eventify/src/app/card.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">113        return (
+114            &lt;div className=&#39;card&#39;&gt;
+115                &lt;Card shadow=&quot;sm&quot; padding=&quot;lg&quot; radius=&quot;md&quot; withBorder&gt;
+116                    &lt;Card.Section&gt;
+117                        &lt;Carousel
+118                            slideSize=&quot;50%&quot;
+119                            slideGap=&quot;md&quot;
+120                            loop
+121                            height={200}
+122                            dragFree&gt;
+123                            {slides}
+124                        &lt;/Carousel&gt;
+125                    &lt;/Card.Section&gt;
+126                    &lt;Group mt=&quot;md&quot; mb=&quot;xs&quot;&gt;
+127                        &lt;Text fw={800} className=&#39;title_card&#39;&gt;{props.title}&lt;/Text&gt;
+128                        &lt;Text size=&quot;m&quot; className=&#39;categ&#39;&gt;
+129                            {props.tags?.slice(0,3).map((tag, index) =&gt; (
+130                                &lt;span key={index}&gt;#{tag}&lt;&gt;&amp;nbsp;&lt;/&gt;&lt;/span&gt;
+131                            ))}
+132                        &lt;/Text&gt;
+133                    &lt;/Group&gt;
+134
+135                    &lt;Text className={&quot;descr&quot;} truncate=&quot;end&quot;&gt;
+136                        {props.description}
+137                    &lt;/Text&gt;
+138
+139                    &lt;br/&gt;
+140
+141                    &lt;div className={&quot;info&quot;}&gt;
+142
+143                        &lt;div className=&quot;date&quot;&gt;
+144                            {formatDate}
+145                        &lt;/div&gt;
+146
+147                        &lt;Text size=&quot;m&quot; className=&#39;place&#39;&gt;
+148                            {props.place}
+149                        &lt;/Text&gt;
+150
+151                    &lt;/div&gt;
+152                    &lt;Button variant=&quot;outline&quot; color=&quot;blue&quot; fullWidth radius=&quot;md&quot; mt=&quot;md&quot; onClick={() =&gt; router.push(`/event/${props.id}`)}&gt;
+153                        SEE MORE
+154                    &lt;/Button&gt;
+155
+156                    {registered ? &lt;Button variant=&quot;outline&quot; color=&quot;red&quot; fullWidth mt=&quot;md&quot; radius=&quot;md&quot; onClick={() =&gt; {
+157                            unregister();
+158                            setRegistered(!registered);
+159                        }}&gt;
+160                            UNREGISTER
+161                        &lt;/Button&gt; :
+162                        &lt;Button variant=&quot;outline&quot; color=&quot;blue&quot; fullWidth mt=&quot;md&quot; radius=&quot;md&quot; onClick={() =&gt; {
+163                            register();
+164                            setRegistered(!registered);
+165                        }}&gt;
+166                            REGISTER
+167                        &lt;/Button&gt;
+168                    }
+169                &lt;/Card&gt;
+170            &lt;/div&gt;
+171        );
+172    }
+</code></pre>
+<br/>
+
+<p>Each card is designed with its own CSS</p>
+<br/>
+
+<p>This code snippet defines the styles for a card container and its cards. It uses flexbox to arrange the cards in a row with space between them. The cards have a specific width and margin, and they transition in size and opacity when hovered over. There are also styles for different elements within the cards, such as categories, user lists, titles, dates, places, and descriptions.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappcardcss">📄 front/eventify/src/app/card.css</h3>
+<!-- collapsed -->
+
+<pre><code class="language-css">1      .card-container{
+2          display: flex;
+3          flex-wrap: wrap;
+4          justify-content: space-between;
+5          position: relative;
+6      }
+7
+8      .card {
+9          flex: 0 0 calc(33% - 20px); /* Imposta la larghezza desiderata per ogni carta (33.33% - spazio tra le carte) */
+10         margin-bottom: 20px; /* Spazio tra le carte verticalmente */
+11         transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; /* Aggiungi transizioni per la trasformazione e l&#39;opacità */
+12         margin-right: 10px; /* Aggiunge spazio tra le carte (regola il valore a tuo piacimento) */
+13         margin-left: 10px;
+14     }
+15
+16     /*.card:first-child {*/
+17     /*    margin-left: 20px; !* Rimuove il margine sinistro per la prima carta *!*/
+18     /*}*/
+19
+20     .card:last-child {
+21         margin-right: 0; /* Rimuove il margine destro per l&#39;ultima carta */
+22     }
+23
+24     .card:hover {
+25         transform: scale(1.05); /* Effetto di ingrandimento al passaggio del mouse (regola il valore a tuo piacimento) */
+26         /*opacity: 0.9; !* Riduce leggermente l&#39;opacità al passaggio del mouse *!*/
+27     }
+28
+29     .categ {
+30         display: flex;
+31         flex-direction: row;
+32         justify-content: right;
+33         color: cornflowerblue;
+34     }
+35
+36     .user_list{
+37         display: flex;
+38         justify-content: left;
+39         color:darkcyan;
+40     }
+41
+42     .info {
+43         display: flex;
+44     }
+45
+46     .title_card{
+47         text-align: center;
+48         font-size: 2rem;
+49     }
+50
+51     .date {
+52         display: flex;
+53         flex-direction: row;
+54         align-items: center;
+55         width: 50%;
+56         text-align: center;
+57     }
+58
+59     .place {
+60         display: flex;
+61         flex-direction: row;
+62         align-items: end;
+63         width: 50%;
+64     }
+65
+66     .descr{
+67         text-align: center;
+68         overflow: hidden;
+69         text-overflow: ellipsis;
+70         width: 250px;
+71     }
+</code></pre>
+<br/>
+
+<p>When someone click on SEE MORE, he gets redirected to a bigger page with more information about the event, like the list of people who&#39;s going to attend the event.</p>
+<br/>
+
+<p>This code snippet sets up a React component called <code>Event</code>. It initializes state variables using the <code>useState</code> hook for <code>userList</code>, <code>event</code>, <code>open</code>, <code>formatDate</code>, and <code>loading</code>. It also imports the <code>useRouter</code> hook from Next.js. The code uses the <code>useContext</code> hook to access the value of a <code>LoadingContext</code>. The <code>slides</code> variable is created by mapping over the <code>event.image</code> array and rendering a <code>Carousel.Slide</code> component for each URL in the array.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappeventidpagetsx">📄 front/eventify/src/app/event/[id]/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">23     export default function Event(params: any | undefined) {
+24         const [userList, setUserList] = useState&lt;user | null&gt;(null);
+25         const [event, setEvent] = useState&lt;Cards&gt;({
+26             id: 0,
+27             title: &quot;&quot;,
+28             owner: &quot;&quot;,
+29             description: &quot;&quot;,
+30             place: &quot;&quot;,
+31             datetime: &quot;&quot;,
+32             image: [],
+33             tags: [],
+34         });
+35         const [open, setOpen] = useState(false);
+36         const [formatDate, setFormatDate] = useState&lt;string&gt;()
+37         const router = useRouter();
+38         const slides = event.image?.map((url) =&gt; (
+39             &lt;Carousel.Slide key={url}&gt;
+40                 &lt;img alt=&quot;&quot; src={url}/&gt;
+41             &lt;/Carousel.Slide&gt;
+42         ));
+43         const loading: boolean = useContext(LoadingContext)
+44
+</code></pre>
+<br/>
+
+<p>This code snippet is an <code>async</code> function called <code>get_event</code> that fetches event data from a specified URL. It sends a <code>POST</code> request with the <code>Authorization</code> header containing a token retrieved from a cookie. The request body contains the event ID. The response is converted to JSON format and stored in a variable called <code>e</code>. The code then performs some operations on the date and sets it in a specific format. Finally, the event data and formatted date are stored in state variables.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappeventidpagetsx-1">📄 front/eventify/src/app/event/[id]/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">45
+46         async function get_event() {
+47             const url = &quot;http://localhost:8080/api/event/findById&quot;
+48             try {
+49                 await fetch(url, {
+50                         method: &quot;POST&quot;,
+51                         headers: {
+52                             &quot;Authorization&quot;: `Bearer ${Cookies.get(&quot;token&quot;)}`,
+53                             &quot;Content-Type&quot;: &quot;application/json&quot;
+54                         },
+55                         body: JSON.stringify({&quot;id&quot;: params.params.id})
+56                     }
+57                 ).then(async (response) =&gt; {
+58                         return response.json()
+59                     }
+60                 ).then((e: Cards) =&gt; {
+61
+62                     let date = new Date(e.datetime)
+63                     setFormatDate(`${date.getDate() &lt; 10 ? &quot;0&quot; + date.getDate() : date.getDate()}/${(date.getMonth() + 1) &lt; 10 ? &quot;0&quot; + (date.getMonth() + 1) : (date.getMonth() + 1)}/${date.getFullYear()} \
+64         ${date.getHours() &lt; 10 ? &quot;0&quot; + date.getHours() : date.getHours()}:${date.getMinutes() &lt; 10 ? &quot;0&quot; + date.getMinutes() : date.getMinutes()}`)
+65                     setEvent(e);
+66
+67
+68                 }).catch()
+69             } catch (error: any) {
+70                 console.error(&quot;An error occurred while getting the event:&quot;, error.toString());
+71             }
+72         }
+73
+</code></pre>
+<br/>
+
+<p>This code snippet is an <code>async</code> function called <code>get_list</code> that makes a <code>POST</code> request to a specified API endpoint (<code>http://localhost:8080/api/users/findSubscribedUser</code>) to fetch a list of subscribed users. It includes headers with the request, such as <code>Content-Type</code> and <code>Authorization</code>, and sends a JSON payload in the request body containing the <code>id</code> and <code>registered</code> parameters. If the response is successful (<code>response.ok</code>), the function parses the response as JSON and sets the user list using the <code>setUserList</code> function. If there is an error during the request or response handling, it will be caught and logged to the console.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappeventidpagetsx-2">📄 front/eventify/src/app/event/[id]/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">73
+74         async function get_list() {
+75             try {
+76                 const response = await fetch(&#39;http://localhost:8080/api/users/findSubscribedUser&#39;, {
+77                     method: &#39;POST&#39;,
+78                     headers: {
+79                         &#39;Content-Type&#39;: &#39;application/json&#39;,
+80                         &#39;Authorization&#39;: `Bearer ${Cookies.get(&quot;token&quot;)}`,
+81                     },
+82                     body: JSON.stringify({&quot;id&quot;: params.params.id, &quot;registered&quot;: true}),
+83                 });
+84                 if (response.ok) {
+85                     const userList = await response.json();
+86                     setUserList(userList);
+87                 } else {
+88                     console.error(&#39;Errore nella richiesta:&#39;, response.status, response.statusText);
+89                 }
+90             } catch (e: any) {
+91                 console.error(e.toString());
+92             }
+93         }
+94
+</code></pre>
+<br/>
+
+<p>This code snippet uses the <code>useEffect</code> hook to perform two functions <code>get_event()</code> and <code>get_list()</code> when the component mounts. It checks if <code>loading</code> is false before executing the functions. The empty dependency array <code>[]</code> ensures that the effect is only run once when the component is mounted.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappeventidpagetsx-3">📄 front/eventify/src/app/event/[id]/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">95         useEffect(() =&gt; {
+96             if (!loading) {
+97                 get_event()
+98                 get_list()
+99             }
+100        }, []);
+101
+</code></pre>
+<br/>
+
+<p>In this page it is also possible to modify the event <a href="modify-event.htm">Modify event</a></p>
+<br/>
+
+<p>This code snippet renders a modal component that displays event details. It also includes a card component with a carousel of images, and an action icon that allows the owner of the event to edit it. The event title and tags are displayed in a group component.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappeventidpagetsx-4">📄 front/eventify/src/app/event/[id]/page.tsx</h3>
+<pre><code class="language-tsx">102        return (
+103            &lt;&gt;
+104                &lt;Modal opened={open} onClose={() =&gt; setOpen(false)}&gt;
+105                    &lt;Modify_event
+106                        id={event.id}
+107                        description={event.description}
+108                        title={event.title}
+109                        owner={event.owner}
+110                        image={event.image}
+111                        place={event.place}
+112                        datetime={event.datetime}
+113                        tags={event.tags}
+114                    /&gt;
+115                &lt;/Modal&gt;
+116                &lt;div className={&#39;cen&#39;}&gt;
+117                    &lt;div className=&#39;event&#39;&gt;
+118                        &lt;Card shadow=&quot;sm&quot; padding=&quot;lg&quot; radius=&quot;md&quot; withBorder&gt;
+119                            &lt;Card.Section&gt;
+120                                &lt;Carousel
+121                                    slideSize=&quot;50%&quot;
+122                                    slideGap=&quot;md&quot;
+123                                    loop
+124                                    height={200}
+125                                    dragFree&gt;
+126                                    {slides}
+127                                &lt;/Carousel&gt;
+128                                {event?.owner === jwtDecode(Cookies.get(&quot;token&quot;)).sub &amp;&amp;
+129                                    &lt;ActionIcon style={{zIndex: &quot;10&quot;, margin: &quot;-50px 0 0 10px&quot;}}
+130                                                onClick={() =&gt; setOpen(true)}
+131                                                color=&quot;dark&quot; size=&quot;lg&quot; variant=&quot;outline&quot;&gt;
+132                                        &lt;IconEdit&gt;&lt;/IconEdit&gt;
+133                                    &lt;/ActionIcon&gt;
+134                                }
+135                            &lt;/Card.Section&gt;
+136
+137                            &lt;Group mt=&quot;md&quot; mb=&quot;xs&quot;&gt;
+138                                &lt;Text fw={800} className={&quot;title_event&quot;}&gt;{event?.title}&lt;/Text&gt;
+139                                &lt;Text size=&quot;m&quot; className=&#39;categ&#39;&gt;
+140                                    {event.tags?.map((tag, index) =&gt; (
+141                                        &lt;span key={index}&gt;#{tag}&lt;&gt;&amp;nbsp;&lt;/&gt;&lt;/span&gt;
+142                                    ))}
+143                                &lt;/Text&gt;
+144                            &lt;/Group&gt;
+145
+146                            &lt;Text className={&quot;descr_event&quot;} style={{ whiteSpace: &#39;pre-wrap&#39; }} size={&quot;xl&quot;}&gt;
+147                                {event?.description}
+148                            &lt;/Text&gt;
+149
+150                            &lt;br/&gt;
+151
+152                            &lt;div className={&quot;info_event&quot;}&gt;
+153                                &lt;Text size=&quot;m&quot; className=&quot;user_list&quot;&gt;
+154                                    Lista di partecipanti:
+155                                    {Array.isArray(userList) ? (
+156                                        userList.map((user, index) =&gt; (
+157                                            &lt;span key={index}&gt;
+158                                    {user.firstName} {user.lastName}
+159                                                {index &lt; userList.length - 1 ? &#39;, &#39; : &#39;&#39;}
+160                                    &lt;/span&gt;
+161                                        ))
+162                                    ) : (
+163                                        &quot;Nessun partecipante registrato&quot;
+164                                    )}
+165                                &lt;/Text&gt;
+166
+167                                &lt;br/&gt;
+168
+169                                &lt;div className=&quot;date_event&quot;&gt;
+170                                    {formatDate}
+171                                &lt;/div&gt;
+172
+173                                &lt;br/&gt;
+174
+175                                &lt;Text size=&quot;m&quot; className=&#39;place_event&#39;&gt;
+176                                    {event?.place}
+177                                &lt;/Text&gt;
+178
+179                            &lt;/div&gt;
+180                            &lt;Button onClick={() =&gt; router.push(&quot;/home&quot;)} variant=&quot;light&quot; color=&quot;blue&quot; fullWidth mt=&quot;md&quot;
+181                                    radius=&quot;md&quot;&gt;
+182                                Go back to Homepage
+183                            &lt;/Button&gt;
+184                        &lt;/Card&gt;
+185                    &lt;/div&gt;
+186                &lt;/div&gt;
+187            &lt;/&gt;
+188        )
+189    }
+</code></pre>
+<br/>

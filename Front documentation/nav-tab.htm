@@ -1,0 +1,99 @@
+<hr>
+
+<p>The Nav Tab appear only when someone is logged in and allows you to switch between home page <a href="homepage-handling.htm">Homepage Handling</a> and user page <a href="user-page-handling.htm">User Page Handling</a>. There is also a log out button:</p>
+<br/>
+
+<p>This code snippet defines an <code>async</code> function called <code>logout</code> that is used to log out a user from a web application. It sends a <code>POST</code> request to a specified URL (<code>http://localhost:8080/logout</code>) with the user&#39;s token in the <code>Authorization</code> header. After receiving a response, it removes the token and refresh token from cookies, and then redirects the user to the login page.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappnavtsx">📄 front/eventify/src/app/nav.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">29         async function logout() {
+30             const url = &quot;http://localhost:8080/logout&quot;
+31             try {
+32                 await fetch(url, {
+33                         method: &quot;POST&quot;,
+34                         headers: {&quot;Content-Type&quot;: &quot;application/json&quot;,
+35                             &quot;Authorization&quot;: `Bearer ${Cookies.get(&quot;token&quot;)}`
+36                         },
+37                     }
+38                 ).then((response) =&gt; response.text()).then((responseText: string) =&gt; {
+39                     //todo remove console.log
+40                     console.log(&quot;logout&quot;);
+41                     console.log(responseText);
+42                 }).catch((error) =&gt; {
+43                     //todo remove console.log
+44                     console.log(error.toString());
+45                 });
+46                 // Remove the token from cookies
+47                 Cookies.remove(&#39;token&#39;);
+48                 Cookies.remove(&#39;refresh_token&#39;);
+49                 // Redirect to the login page or perform any other desired action
+50                 router.push(&quot;/&quot;);
+51             } catch (error : any) {
+52                 //todo remove console.log
+53                 console.log(error.toString());
+54             }
+55         }
+</code></pre>
+<br/>
+
+<p>The Nav bar is organized as follows:</p>
+<br/>
+
+<p>This code snippet defines an interface <code>NavProps</code> with two properties: <code>tabs</code> of type string and <code>setTabs</code> which is a function that takes a string argument and returns void.</p>
+<p>The code also exports a default function <code>Nav()</code>. Inside this function, there is a declaration of a variable <code>pathname</code> assigned with the value returned from the <code>usePathname()</code> function, and a variable <code>router</code> assigned with the value of <code>useRouter()</code>.</p>
+<p>There is also a function <code>checkPath()</code> that iterates over an array of paths and checks if the <code>pathname</code> matches any of the paths. If there is a match, it returns <code>false</code>, otherwise, it returns <code>true</code>.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappnavtsx-1">📄 front/eventify/src/app/nav.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">11     interface NavProps {
+12         tabs: string;
+13         setTabs: (tab: string) =&gt; void;
+14     }
+15
+16     export default function Nav() {
+17         const pathname: string = usePathname()
+18         const router: AppRouterInstance = useRouter()
+19
+20         function checkPath(): boolean {
+21             let noPath: string[] = [&quot;/&quot;, &quot;/login&quot;, &quot;/signup&quot;,]
+22             for (let i:number = 0; i &lt; noPath.length; i++) {
+23                 if (pathname === noPath[i]) {
+24                     return false
+25                 }
+26             }
+27             return true
+28         }
+</code></pre>
+<br/>
+
+<p>This code snippet creates a navigation bar with a title &quot;Eventify&quot; and a list of options like &quot;Home&quot;, &quot;User&quot; and &quot;Logout&quot;. The options are conditionally rendered based on the result of <code>checkPath()</code> function.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappnavtsx-2">📄 front/eventify/src/app/nav.tsx</h3>
+<pre><code class="language-tsx">56
+57         return (
+58             &lt;div&gt;
+59                 &lt;nav className=&quot;nav&quot;&gt;
+60                     &lt;a onClick={()=&gt;Cookies.get(&quot;token&quot;) === undefined ? router.push(&quot;/&quot;) : router.push(&quot;/home&quot;)} className=&quot;title&quot;&gt;Eventify&lt;/a&gt;
+61                     {checkPath() ?
+62                         &lt;ul&gt;
+63                             &lt;div className={pathname === &quot;/home&quot; ? &quot;nav_active&quot; : &quot;nav_not_active&quot;}
+64                                  onClick={() =&gt; {router.push(&quot;/home&quot;)}}&gt;Home &lt;IconHome2/&gt;
+65                             &lt;/div&gt;
+66                             &lt;div className={pathname == &quot;/user&quot; ? &quot;nav_active&quot; : &quot;nav_not_active&quot;}
+67                                  onClick={() =&gt; router.push(&quot;/user&quot;)}&gt;User &lt;IconUserSquare/&gt;
+68                             &lt;/div&gt;
+69                             &lt;div className={&quot;nav_not_active&quot;}
+70                                  onClick={() =&gt; logout()}&gt;logout &lt;IconLogout/&gt;
+71                             &lt;/div&gt;
+72                         &lt;/ul&gt;
+73                         : null}
+74                 &lt;/nav&gt;
+75                 &lt;div className=&quot;content-container&quot;&gt;&lt;/div&gt;
+76             &lt;/div&gt;
+77         )
+78     }
+</code></pre>
+<br/>

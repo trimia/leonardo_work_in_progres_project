@@ -1,0 +1,10 @@
+com.demo.eventify
+com.demo.eventify.authentication
+com.demo.eventify.config
+com.demo.eventify.controller
+com.demo.eventify.event
+com.demo.eventify.image
+com.demo.eventify.login
+com.demo.eventify.tag
+com.demo.eventify.token
+com.demo.eventify.user

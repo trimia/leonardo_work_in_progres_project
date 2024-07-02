@@ -1,0 +1,94 @@
+<hr>
+
+<p>This is the father component of the application. This part organizes and renders most of the pages:</p>
+<br/>
+
+<p>This code snippet is a function that exports a default PageLayout component. It takes in a <code>children</code> prop which is of type <code>React.ReactNode</code>. Inside the component, it uses the <code>usePathname</code> hook from React Router to get the current pathname. It also uses the <code>useState</code> hook to create a <code>loader</code> state variable and set it to <code>true</code> initially.</p>
+<p>There are two async functions defined in this component. The <code>tokenExpired</code> function takes in a <code>jwt</code> parameter of type <code>Token</code> and makes an API request to check if the token has expired. If the response is not OK, it calls the <code>refreshToken</code> function. Finally, it sets the <code>loader</code> state variable to <code>false</code>.</p>
+<p>The <code>refreshToken</code> function takes in a <code>jwt</code> parameter of type <code>Token</code> and makes an API request to refresh the token using the refresh_token. If the response is OK and the URL matches a specific value, it retrieves the new token from the response and sets the <code>token</code> and <code>refresh_token</code> cookies. If the response is not OK or the URL doesn&#39;t match, it redirects the user to the login page.</p>
+<p>There is also a <code>check</code> function that is called when the component mounts. It sets the <code>loader</code> state variable to <code>true</code> and checks if the current pathname matches any of the protected routes. If there are no token and refresh_token cookies, it redirects the user to the login page. Otherwise, it sets the <code>loader</code> state variable to <code>false</code>.</p>
+<p>The code also imports and uses external dependencies such as <code>usePathname</code> from React Router, <code>useState</code> from React, <code>useRouter</code> from Next.js, and <code>Cookies</code> from a cookie library.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapppagelayouttsx">📄 front/eventify/src/app/PageLayout.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">12     export default function PageLayout({
+13                                            children,
+14                                        }: {
+15         children: React.ReactNode
+16     }) {
+17         const pathname = usePathname();
+18         const [loader, setLoader] = useState&lt;boolean&gt;(true)
+19         const router = useRouter()
+20
+21         async function tokenExpired(jwt: Token) {
+22             const url: string = &quot;http://localhost:8080/api/event/exp&quot;
+23             const res: Response = await fetch(url, {
+24                 headers: {
+25                     &quot;Authorization&quot;: `Bearer ${jwt.access_token}`
+26                 }
+27             })
+28             console.log(res.text())
+29             if (!res.ok) {
+30                 refreshToken(jwt).catch()
+31             }
+32             setLoader(false)
+33         }
+34
+35         async function refreshToken(jwt: Token) {
+36             const res: Response = await fetch(&quot;http://localhost:8080/api/v1/auth/refresh-token&quot;, {
+37                 headers: {
+38                     &quot;Authorization&quot;: `Bearer ${jwt.refresh_token}`
+39                 },
+40             })
+41             Cookies.remove(&#39;token&#39;);
+42             Cookies.remove(&#39;refresh_token&#39;);
+43             console.log(res)
+44             if (res.ok &amp;&amp; res.url === &quot;http://localhost:8080/api/v1/auth/refresh-token&quot;) {
+45                 console.log(&quot;refreshed&quot;)
+46                 const token: Token = await res.json();
+47                 Cookies.set(&#39;token&#39;, token.access_token, {path: &quot;/&quot;, sameSite: &quot;Lax&quot;, expires: jwtDecode(token.access_token).exp}); // Token expires in 1 day
+48                 Cookies.set(&#39;refresh_token&#39;, token.refresh_token, {path: &quot;/&quot;, sameSite: &quot;Lax&quot;, expires: jwtDecode(token.refresh_token).exp});
+49                 setLoader(false)
+50             } else {
+51                 router.push(&quot;/login&quot;)
+52             }
+53         }
+54
+55         function check() {
+56             setLoader(true)
+57             const path = pathname
+58             const protectedRoutes: string[] = [&quot;/create_event&quot;, &quot;/home&quot;, &quot;/settings&quot;, &quot;/user&quot;, &quot;/event/*&quot;];
+59             if (protectedRoutes.includes(path)) {
+60                 if (!Cookies.get(&quot;token&quot;) &amp;&amp; !Cookies.get(&quot;refresh_token&quot;)) {
+61                     router.push(&quot;/login&quot;)
+62                 } else {
+63                     console.log(&quot;cookie exist&quot;)
+64                     let acces_token: string | undefined = Cookies.get(&quot;token&quot;)
+65                     let refresh_token: string | undefined = Cookies.get(&quot;refresh_token&quot;)
+66                     if (acces_token &amp;&amp; refresh_token) {
+67                         console.log(&quot;refr&quot;)
+68                         tokenExpired({access_token: acces_token, refresh_token: refresh_token}).catch()
+69                     }
+70                     setLoader(false)
+71                 }
+72             }
+73             setLoader(false)
+74         }
+75
+76         useLayoutEffect(() =&gt; {
+77             check()
+78         }, [pathname]);
+79
+80         return (
+81             &lt;MantineProvider&gt;
+82                 &lt;Notifications autoClose={4000}/&gt;
+83                 &lt;Nav&gt;&lt;/Nav&gt;
+84                 &lt;LoadingContext.Provider value={loader}&gt;
+85                     {loader ? &lt;center&gt;&lt;Loader color=&quot;orange&quot; size=&quot;xl&quot;/&gt;&lt;/center&gt; :
+86                         children}
+87                 &lt;/LoadingContext.Provider&gt;
+88             &lt;/MantineProvider&gt;
+89         )
+</code></pre>
+<br/>

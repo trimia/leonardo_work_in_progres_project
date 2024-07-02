@@ -1,0 +1,20 @@
+<hr>
+
+<p>In order to handle images we used the following approch, each picture that gets uploaded get converted and then stored in our database. This happens when you create or edit an event, or when you sign up. <a href="create-event.htm">Create event</a> <a href="modify-event.htm">Modify event</a> <a href="sign-up-page.htm">Sign up Page</a></p>
+<br/>
+
+<p>This code snippet exports a function named <code>getBase64</code> that takes a <code>File</code> object as an argument. It returns a promise that resolves with a base64-encoded string representation of the file. The function uses a <code>FileReader</code> to read the file and convert it to a data URL using the <code>readAsDataURL</code> method. When the reading is complete, the <code>onload</code> event is triggered and the result is resolved with the base64 string. If an error occurs during the reading process, the promise is rejected with the error.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappbase64ts">📄 front/eventify/src/app/base64.ts</h3>
+<!-- collapsed -->
+
+<pre><code class="language-typescript">1      export function getBase64(file: File) {
+2          return new Promise&lt;string&gt;((resolve, reject) =&gt; {
+3              const reader = new FileReader();
+4              reader.readAsDataURL(file);
+5              reader.onload = () =&gt; resolve(reader.result as string);
+6              reader.onerror = error =&gt; reject(error);
+7          });
+8      }
+</code></pre>
+<br/>

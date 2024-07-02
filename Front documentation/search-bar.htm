@@ -1,0 +1,190 @@
+<hr>
+
+<p>This is how we handled the search function:</p>
+<br/>
+
+<p>This code snippet defines an interface called <code>SearchObj</code>. It specifies the structure and data types of an object that is typically used for searching. The <code>SearchObj</code> interface has properties such as <code>title</code> (a string), <code>from</code> and <code>to</code> (both can be either a <code>Date</code> object or <code>null</code>), <code>place</code> (an array of strings), and <code>tags</code> (an array of strings).</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapphomesearchtsx">📄 front/eventify/src/app/home/search.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">9      interface SearchObj {
+10         title: string,
+11         from: Date | null,
+12         to: Date | null,
+13         place: string[],
+14         tags: string[]
+15     }
+</code></pre>
+<br/>
+
+<p>This code snippet defines a component called <code>Search</code> which handles search functionality. It imports the <code>useContext</code> and <code>useState</code> hooks from React. It initializes some state variables such as <code>searchObj</code>, <code>listPlace</code>, <code>tagList</code>, and <code>isContainerVisible</code>.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapphomesearchtsx-1">📄 front/eventify/src/app/home/search.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">18     export default function Search(props: any) {
+19         const loading = useContext(LoadingContext)
+20         const searchObjInit: SearchObj = {
+21             title: &quot;&quot;,
+22             from: null,
+23             to: null,
+24             place: [],
+25             tags: [],
+26         }
+27         const [searchObj, setSearchObj] = useState&lt;SearchObj&gt;(searchObjInit)
+28         const [listPlace, setListPlace] = useState&lt;string[]&gt;([])
+29         const [tagList, setTagList] = useState&lt;string[]&gt;([])
+30         const [isContainerVisible, setIsContainerVisible] = useState(false);
+31
+</code></pre>
+<br/>
+
+<p>This code snippet uses <em>useEffect</em> and <em>useLayoutEffect</em> hooks to perform certain actions based on the changes in <em>searchObj</em> and <em>loading</em> variables. It logs the <em>searchObj</em> values when they change, fetches <em>place</em> and <em>tag</em> data when <em>loading</em> is false, and calls <em>getAllEvent</em> when <em>searchObj</em> matches <em>searchObjInit</em> and <em>isContainerVisible</em> is false. It also includes a <em>toggleContainer</em> function to toggle the visibility of a container.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapphomesearchtsx-2">📄 front/eventify/src/app/home/search.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">32         useEffect(() =&gt; {
+33             console.log(searchObj)
+34         }, [searchObj.place, searchObj.title, searchObj.from, searchObj.to,]);
+35
+36         useEffect(() =&gt; {
+37             if (!loading) {
+38                 getPlace().then()
+39                 getTag().then()
+40             }
+41         }, []);
+42
+43         useLayoutEffect(() =&gt; {
+44             if(JSON.stringify(searchObj) === JSON.stringify(searchObjInit) &amp;&amp; !isContainerVisible){
+45                 props.getAllEvent();
+46             }
+47         }, [searchObj.title, searchObj.from, searchObj.to, searchObj.place, searchObj.tags]);
+48
+49         const toggleContainer = () =&gt; {
+50             setIsContainerVisible(!isContainerVisible);
+51         };
+</code></pre>
+<br/>
+
+<p>This code snippet includes three asynchronous functions: <code>getPlace</code>, <code>getTag</code>, and <code>search</code>.</p>
+<p>The <code>getPlace</code> function fetches data from the URL &quot;<a href="http://localhost:8080/api/event/AllPlace">http://localhost:8080/api/event/AllPlace</a>&quot; and sets the fetched data as a state variable called <code>ListPlace</code>. It includes an authorization header to authenticate the request using a token retrieved from a cookie.</p>
+<p>The <code>getTag</code> function is similar to <code>getPlace</code> but fetches data from the URL &quot;<a href="http://localhost:8080/api/event/AllTag">http://localhost:8080/api/event/AllTag</a>&quot; and sets the fetched data as a state variable called <code>TagList</code>.</p>
+<p>The <code>search</code> function sends a POST request to the URL &quot;<a href="http://localhost:8080/api/event/search">http://localhost:8080/api/event/search</a>&quot; with a JSON payload (<code>searchObj</code>) in the request body. It expects a response in the format of an array of <code>Cards</code> objects. The fetched data is then logged to the console and passed to a function (<code>props.setCard</code>) to update the state of a component. Like the previous functions, it includes an authorization header to authenticate the request using a token retrieved from a cookie.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapphomesearchtsx-3">📄 front/eventify/src/app/home/search.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">52
+53         async function getPlace() {
+54             const url = &quot;http://localhost:8080/api/event/AllPlace&quot;
+55             await fetch(url,
+56                 {
+57                     headers: {
+58                         &quot;Authorization&quot;: `Bearer ${Cookies.get(&quot;token&quot;)}`
+59                     },
+60                 }
+61             ).then((v) =&gt; v.json()).then((v: string[]) =&gt; {
+62                 console.log(v);
+63                 setListPlace(v)
+64             }).catch()
+65         }
+66
+67         async function getTag() {
+68             const url = &quot;http://localhost:8080/api/event/AllTag&quot;
+69             await fetch(url,
+70                 {
+71                     headers: {
+72                         &quot;Authorization&quot;: `Bearer ${Cookies.get(&quot;token&quot;)}`
+73                     },
+74                 }
+75             ).then(
+76                 (v) =&gt; v.json()
+77             ).then((v: string[]) =&gt; {
+78                 setTagList(v)
+79             }).catch()
+80         }
+81
+82
+83         async function search() {
+84             const url = &quot;http://localhost:8080/api/event/search&quot;
+85             await fetch(url,
+86                 {
+87                     method:&quot;POST&quot;,
+88                     headers: {
+89                         &quot;Content-Type&quot;: &quot;application/json&quot;,
+90                         &quot;Authorization&quot;: `Bearer ${Cookies.get(&quot;token&quot;)}`
+91                     },
+92                     body: JSON.stringify(searchObj)
+93                 }
+94             ).then((v) =&gt; v.json()).then((v: Cards[]) =&gt; {
+95                 console.log(v);
+96                 props.setCard(v);
+97             }).catch()
+98         }
+99
+</code></pre>
+<br/>
+
+<p>This code snippet creates a container with a toggle button that shows or hides search bars. When the toggle button is clicked, it changes its label text accordingly. If the container is visible, it renders various input components such as text input, multi-select, and date input. The values selected in these input components are stored in the <code>searchObj</code> state object using the <code>setSearchObj</code> function.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapphomesearchtsx-4">📄 front/eventify/src/app/home/search.tsx</h3>
+<pre><code class="language-tsx">100        return (
+101            &lt;Container&gt;
+102                &lt;center&gt;
+103                    &lt;Button className=&quot;create&quot; size=&quot;md&quot; variant=&quot;filled&quot; onClick={toggleContainer}&gt;
+104                        {isContainerVisible ? &quot;Hide Search Bars&quot; : &quot;Show Search Bars&quot;}
+105                    &lt;/Button&gt;
+106                    {isContainerVisible &amp;&amp; (
+107                        &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot; }}&gt;
+108                            &lt;TextInput
+109                                style={{ marginBottom: &quot;8px&quot; }}
+110                                label={&quot;Title&quot;}
+111                                value={searchObj?.title}
+112                                onChange={(e) =&gt; setSearchObj({ ...searchObj, title: e.target.value })}
+113                            /&gt;
+114                            &lt;MultiSelect
+115                                value={searchObj.place}
+116                                onChange={(e) =&gt; setSearchObj({ ...searchObj, place: e })}
+117                                label={&quot;Place&quot;}
+118                                data={listPlace}
+119                                clearable
+120                            /&gt;
+121                            &lt;DateInput
+122                                clearable
+123                                value={searchObj.from}
+124                                onChange={(e) =&gt; setSearchObj({ ...searchObj, from: e })}
+125                                label={&quot;From&quot;}
+126                            /&gt;
+127                            &lt;DateInput
+128                                clearable
+129                                value={searchObj.to}
+130                                onChange={(e) =&gt; setSearchObj({ ...searchObj, to: e })}
+131                                label={&quot;To&quot;}
+132                            /&gt;
+133                            &lt;MultiSelect
+134                                data={tagList}
+135                                onChange={(e) =&gt; setSearchObj({ ...searchObj, tags: e })}
+136                                value={searchObj.tags}
+137                                clearable
+138                                label={&quot;Tags&quot;}
+139                            /&gt;
+140                            &lt;br /&gt;
+141                            &lt;Button className=&quot;create&quot; size=&quot;md&quot; variant=&quot;filled&quot; onClick={search}&gt;
+142                                Search
+143                            &lt;/Button&gt;
+144                            &lt;Button className=&quot;create&quot; size=&quot;md&quot; variant=&quot;filled&quot; onClick={() =&gt; {
+145                                props.getAllEvent();
+146                                setSearchObj(searchObjInit);
+147                            }}&gt;
+148                                Clear
+149                            &lt;/Button&gt;
+150                        &lt;/div&gt;
+151                    )}
+152                &lt;/center&gt;
+153            &lt;/Container&gt;
+154        )
+155    }
+</code></pre>
+<br/>

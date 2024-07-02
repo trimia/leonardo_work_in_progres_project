@@ -1,0 +1,37 @@
+<hr>
+
+<p>This function is used only to renders event in the user page. They are almost equal to the event&#39;s rendering in the home page. One difference is the presence of the delete button
+<br/>
+
+<p>This code snippet defines an asynchronous function <code>deleteEvent</code> that sends a DELETE request to a specified URL (<code>http://localhost:8080/api/event/delete_event</code>) to delete an event. It includes a <code>fetch</code> request with the DELETE method, sets the request headers including the &quot;Content-Type&quot; and &quot;Authorization&quot; headers, and sends a JSON payload in the request body containing the email of the event owner (<code>props.owner</code>). The response from the request is then parsed as JSON and logged to the console. Any errors that occur during the request are caught and logged to the console as well.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappcard_modifypagetsx">📄 front/eventify/src/app/card_modify/page.tsx</h3>
+<pre><code class="language-tsx">113        async function deleteEvent() {
+114            const url = &quot;http://localhost:8080/api/event/delete_event&quot;;
+115            try {
+116                const response = await fetch(url, {
+117                    method: &quot;DELETE&quot;,
+118                    headers: {
+119                        &quot;Content-Type&quot;: &quot;application/json&quot;,
+120                        &quot;Authorization&quot;: `Bearer ${Cookies.get(&quot;token&quot;)}`,
+121                    },
+122                    body: JSON.stringify({&quot;email&quot;: props.owner})
+123                });
+124                const data = await response.json();
+125                console.log(data);
+126            } catch (e: any) {
+127                console.log(e.toString());
+128                return null;
+129            }
+130        }
+</code></pre>
+<br/>
+
+<p>This code snippet creates a button with the following characteristics: it has an outline variant, red color, takes up the full width of its container, has a medium radius, and is positioned with a margin top of medium. When the button is clicked, it triggers the <code>deleteEvent()</code> function. The button text is &quot;DELETE EVENT&quot;.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappcard_modifypagetsx-1">📄 front/eventify/src/app/card_modify/page.tsx</h3>
+<pre><code class="language-tsx">188                    &lt;Button variant=&quot;outline&quot; color=&quot;red&quot; fullWidth radius=&quot;md&quot; mt=&quot;md&quot; onClick={() =&gt; deleteEvent()}&gt;
+189                        DELETE EVENT
+190                    &lt;/Button&gt;
+</code></pre>
+<br/>

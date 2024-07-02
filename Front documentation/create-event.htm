@@ -1,0 +1,195 @@
+<hr>
+
+<p>The following part explains how we handled the creation of event part</p>
+<br/>
+
+<p>This code snippet defines an interface called <code>formEvent</code> which describes the structure of an event form. It includes properties such as <code>title</code>, <code>description</code>, <code>image</code>, <code>place</code>, <code>datetime</code>, and <code>tags</code>.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappcreate_eventspagetsx">📄 front/eventify/src/app/create_events/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">20     interface formEvent {
+21         title: string,
+22         description: string,
+23         image: Array&lt;File&gt;,
+24         place: string,
+25         datetime: Date | null,
+26         tags: string[],
+27     }
+28
+</code></pre>
+<br/>
+
+<p>This code snippet is exporting a function called <code>Create_event</code>. The main functionality of this code is to create a form using the <code>useForm</code> hook and set initial values for the form fields. It also includes a validation function for each field using the <code>hasLength</code> function. Additionally, it initializes state variables using the <code>useState</code> hook and imports the <code>useRouter</code> hook for routing purposes. Finally, it includes a state variable for handling date errors and a context variable for loading status.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappcreate_eventspagetsx-1">📄 front/eventify/src/app/create_events/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">29     export default function Create_event() {
+30         const form = useForm&lt;formEvent&gt;({
+31             initialValues: {
+32                 title: &#39;&#39;,
+33                 description: &#39;&#39;,
+34                 place: &#39;&#39;,
+35                 datetime: null,
+36                 tags: [],
+37                 image: [],
+38             },
+39             validate: {
+40                 title: hasLength({min: 2, max: 30}, &#39;Title must be 2-30 characters long&#39;),
+41                 description: hasLength({min: 2, max: 255}, &#39;Description must be 2-255 characters long&#39;),
+42                 place: hasLength({min: 2, max: 20}, &#39;Place must be 2-20 characters long&#39;),
+43                 image: hasLength({min: 1, max: 5}, &#39;You must upload at least one image&#39;),
+44             }
+45         });
+46         const [tagList, setTagList] = useState&lt;string[]&gt;([])
+47         const router = useRouter()
+48         const [dateError, setDateError] = useState&lt;string | null&gt;(null);
+49         const loading = useContext(LoadingContext)
+</code></pre>
+<br/>
+
+<p>This code snippet includes several functions that are related to creating and retrieving event data.</p>
+<p>The <code>getTag</code> function makes an HTTP request to a specified URL to fetch a list of tags for an event. It uses the <code>fetch</code> function to make the request and includes an authorization token in the request headers. If the response is successful, the tags are extracted from the response body and stored using the <code>setTagList</code> function.</p>
+<p>The first <code>useEffect</code> hook is used to call the <code>getTag</code> function when the component is mounted. It checks if a loading state is false before making the request.</p>
+<p>The second <code>useEffect</code> hook is used to check if a selected datetime value is a future date. If it is not, an error message is set using the <code>setDateError</code> function. This hook runs whenever the <code>form.values.datetime</code> value changes.</p>
+<p>The <code>createEvent</code> function is used to create a new event by making a POST request to a specified URL. It performs some validation checks before making the request. If there is an error with the datetime value, an error message is set. If the form is valid, the function converts the images to base64 strings using the <code>getBase64</code> function and stores them in an array. The request is then made with the form values, including the array of base64 images in the request body. The authorization token is included in the request headers.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappcreate_eventspagetsx-2">📄 front/eventify/src/app/create_events/page.tsx</h3>
+<pre><code class="language-tsx">51         async function getTag() {
+52             const url = &quot;http://localhost:8080/api/event/AllTag&quot;;
+53             try {
+54                 const response = await fetch(url, {
+55                     headers: {
+56                         &quot;Authorization&quot;: `Bearer ${Cookies.get(&quot;token&quot;)}`
+57                     },
+58                 });
+59
+60                 if (response.ok) {
+61                     const tags = await response.json();
+62                     setTagList(tags);
+63                 }
+64             } catch (error: any) {
+65             }
+66         }
+67
+68         useEffect(() =&gt; {
+69             if (!loading) {
+70                 getTag()
+71             }
+72         }, []);
+73
+74         useEffect(() =&gt; {
+75             const currentDate = new Date();
+76             if (form.values.datetime &amp;&amp; form.values.datetime &lt;= currentDate) {
+77                 setDateError(&quot;Please select a future date for the event.&quot;);
+78             } else {
+79                 setDateError(null);
+80             }
+81         }, [form.values.datetime]);
+82
+83         async function createEvent() {
+84             if (!form.values.datetime) {
+85                 setDateError(&quot;Please select a date and time for the event.&quot;);
+86                 return;
+87             }
+88
+89             if (dateError) {
+90                 return; // Non inviare i dati se c&#39;è un errore nella data
+91             }
+92
+93             if (form.isValid()) {
+94                 const url = &quot;http://localhost:8080/api/event/registerevents&quot;
+95                 let a: string[] = []
+96                 for (let i: number = 0; i &lt; form.values.image.length; i++) {
+97                    a.push(await getBase64(form.values.image[i]).then((v: string): string =&gt; {
+98                        return v
+99                     }))
+100                }
+101                fetch(url, {
+102                    method: &quot;POST&quot;,
+103                    headers: {
+104                        &quot;Content-Type&quot;: &quot;application/json&quot;,
+105                        &quot;Authorization&quot;: `Bearer ${Cookies.get(&quot;token&quot;)}`
+106                    },
+107                    body: JSON.stringify({...form.values, image: a})
+108                }).then((v) =&gt; {
+109                    if (v.url !== url) {
+110                        return null
+111                    }
+112                    if (v.status !== 200) {
+113                        return null;
+114                    }
+115                    return v.json()
+116                }).then((v) =&gt; {
+117                }).catch()
+118                router.push(&quot;/home&quot;)
+119            }
+120        }
+121
+</code></pre>
+<br/>
+
+<p>This code snippet is a form that allows users to add an event. It includes input fields for the event title, description, images, date and time, place, and tags. The form is styled using the <code>Container</code>, <code>Title</code>, <code>Paper</code>, and various input components provided by a UI library. The form submission is handled by the <code>onSubmit</code> function, which calls the <code>createEvent</code> function.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappcreate_eventspagetsx-3">📄 front/eventify/src/app/create_events/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">121
+122        return (
+123            &lt;Container  size={420} my={40}&gt;
+124                &lt;form onSubmit={form.onSubmit(createEvent)}&gt;
+125                    &lt;Title
+126                        align=&quot;center&quot;
+127                        sx={(theme) =&gt; ({fontFamily: `Greycliff CF, ${theme.fontFamily}`, fontWeight: 900})}
+128                    &gt;
+129                        Add your event
+130                    &lt;/Title&gt;
+131                    &lt;Paper withBorder shadow=&quot;md&quot; p={30} mt={30} radius=&quot;md&quot;&gt;
+132                        &lt;TextInput label=&quot;Title&quot; placeholder=&quot;Partyyyy&quot; required {...form.getInputProps(&#39;title&#39;)}/&gt;
+133                        &lt;TextInput label=&quot;Description&quot; placeholder=&quot;Festa di pippo&quot;
+134                                   required {...form.getInputProps(&#39;description&#39;)}/&gt;
+135                        &lt;FileInput
+136                            placeholder=&quot;Your images gallery&quot;
+137                            label=&quot;Profile picture&quot;
+138                            accept=&quot;image/png,image/jpeg&quot;
+139                            required
+140                            multiple
+141                            {...form.getInputProps(&#39;image&#39;)}
+142                        /&gt;
+143                        &lt;DateTimePicker
+144                            clearable
+145                            {...form.getInputProps(&#39;datetime&#39;)}
+146                            valueFormat=&quot;DD MMM YYYY HH:mm&quot;
+147                            label=&quot;Date of event&quot;
+148                            maxDate={new Date(new Date().getFullYear() + 1, 11, 31)} // Optional: Set a maximum date (e.g., one year in the future)
+149                            error={dateError}
+150                            maw={400}
+151                            mx=&quot;auto&quot;
+152                        /&gt;
+153                        &lt;TextInput label=&quot;Place&quot; placeholder=&quot;casa di topolino&quot; required {...form.getInputProps(&#39;place&#39;)}/&gt;
+154                        &lt;MultiSelect
+155                            data={tagList}
+156                            {...form.getInputProps(&quot;tags&quot;)}
+157                            clearable
+158                            searchable
+159                            creatable
+160                            getCreateLabel={(value) =&gt; `Create &quot;${value}&quot;`}
+161                            onCreate={(value) =&gt; {
+162                                const newValue: { value: string, label: string } = {value: value, label: value}
+163                                setTagList([...tagList, value])
+164                                form.setFieldValue(&quot;tags&quot;, [...form.values.tags, value])
+165                                return newValue
+166                            }}
+167                            nothingFound={&quot;No tags found&quot;}
+168                            label={&quot;Tags&quot;}/&gt;
+169                        &lt;Button variant=&quot;outline&quot; mt=&quot;sm&quot; type=&quot;submit&quot;&gt;
+170                            Create event
+171                        &lt;/Button&gt;
+172                    &lt;/Paper&gt;
+173                &lt;/form&gt;
+174            &lt;/Container&gt;
+175        )
+176    }
+</code></pre>
+<br/>

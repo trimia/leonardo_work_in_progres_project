@@ -1,0 +1,66 @@
+<hr>
+
+<p>This code snippet contains CSS styles for a navigation bar. It sets the box-sizing property to border-box for all elements and removes the default margin from the body. It defines styles for the title, navigation bar, and navigation links. The navigation bar is displayed as a flex container with items spaced between, and it has a black background with white text. The navigation links are styled as a horizontal list with a gap between them. There are also styles for the active and inactive states of the navigation links, with different background colors.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappnavcss">📄 front/eventify/src/app/nav.css</h3>
+<!-- collapsed -->
+
+<pre><code class="language-css">1      * {
+2          box-sizing: border-box;
+3      }
+4
+5      body{
+6          margin: 0;
+7      }
+8
+9      .title {
+10         font-size: 2rem;
+11         font-style: oblique;
+12     }
+13
+14     .nav {
+15         display: flex;
+16         justify-content: space-between;
+17         align-items: stretch;
+18         gap: 2rem;
+19         padding: 0 1rem;
+20         background-color: black;
+21         color: white;
+22     }
+23
+24     .nav a{
+25         color: inherit;
+26         text-decoration: none;
+27     }
+28
+29     .nav ul {
+30         padding: 0;
+31         margin: 0;
+32         list-style: none;
+33         display: flex;
+34         gap: 1rem;
+35     }
+36
+37     .nav_not_active{
+38         display: flex;
+39         justify-content: center;
+40         align-items: center;
+41     }
+42
+43     .nav_active {
+44         display: flex;
+45         justify-content: center;
+46         background-color: #555;
+47         align-items: center;
+48     }
+49
+50
+51     .nav_not_active:hover {
+52         background-color: #777;
+53     }
+</code></pre>
+<br/>
+
+<br/>
+
+<br/>

@@ -1,0 +1,71 @@
+.card-container{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    position: relative;
+}
+
+.card {
+    flex: 0 0 calc(33% - 20px); /* Imposta la larghezza desiderata per ogni carta (33.33% - spazio tra le carte) */
+    margin-bottom: 20px; /* Spazio tra le carte verticalmente */
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; /* Aggiungi transizioni per la trasformazione e l'opacità */
+    margin-right: 10px; /* Aggiunge spazio tra le carte (regola il valore a tuo piacimento) */
+    margin-left: 10px;
+}
+
+/*.card:first-child {*/
+/*    margin-left: 20px; !* Rimuove il margine sinistro per la prima carta *!*/
+/*}*/
+
+.card:last-child {
+    margin-right: 0; /* Rimuove il margine destro per l'ultima carta */
+}
+
+.card:hover {
+    transform: scale(1.05); /* Effetto di ingrandimento al passaggio del mouse (regola il valore a tuo piacimento) */
+    /*opacity: 0.9; !* Riduce leggermente l'opacità al passaggio del mouse *!*/
+}
+
+.categ {
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    color: cornflowerblue;
+}
+
+.user_list{
+    display: flex;
+    justify-content: left;
+    color:darkcyan;
+}
+
+.info {
+    display: flex;
+}
+
+.title_card{
+    text-align: center;
+    font-size: 2rem;
+}
+
+.date {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 50%;
+    text-align: center;
+}
+
+.place {
+    display: flex;
+    flex-direction: row;
+    align-items: end;
+    width: 50%;
+}
+
+.descr{
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 250px;
+}

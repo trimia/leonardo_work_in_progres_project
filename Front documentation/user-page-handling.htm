@@ -1,0 +1,139 @@
+<hr>
+
+<p>The user page simply shows the user information and the event that he cretaed, giving him the possibility to eliminate them <a href="card-to-modify.htm">Card to modify</a></p>
+<br/>
+
+<br/>
+
+<p>This code defines two interfaces, &quot;Cards&quot; and &quot;user&quot;, which specify the structure and types of properties for objects that will implement them. The &quot;Cards&quot; interface includes properties such as id, title, description, place, owner, datetime, image, and tags. The &quot;user&quot; interface includes properties such as firstName, lastName, image, email, and registered.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappuserpagetsx">📄 front/eventify/src/app/user/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">13     interface Cards {
+14         id: number;
+15         title: String;
+16         description: String;
+17         place: string;
+18         owner: String;
+19         datetime: string;
+20         image: string[];
+21         tags: String[] | null;
+22     }
+23
+24     interface user {
+25         firstName: string,
+26         lastName: string,
+27         image: string;
+28         email: string,
+29         registered: boolean
+30     }
+</code></pre>
+<br/>
+
+<p>This code exports a function called <code>User</code>. Inside this function, there are several state variables defined using the <code>useState</code> hook. The <code>card</code> state variable is initialized as <code>null</code> and will hold an array of <code>Cards</code> objects. The <code>userData</code> state variable is also initialized as <code>null</code> and will hold a <code>user</code> object. The <code>loading</code> variable is set using the <code>useContext</code> hook.</p>
+<p>There is also an asynchronous function called <code>eventLogIn</code> defined. Inside this function, an access token is retrieved from a cookie. If the access token exists, it is decoded to get the email associated with it. Then a <code>POST</code> request is made to a specific URL with the access token and email in the headers and the email in the request body as JSON. The response from the request is converted to JSON and assigned to the <code>card</code> state variable using the <code>setCard</code> function.</p>
+<p>Overall, this code sets up state variables, retrieves an access token, and makes a <code>POST</code> request to fetch data based on the decoded email from the token.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappuserpagetsx-1">📄 front/eventify/src/app/user/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">34     export default function User() {
+35         const [card, setCard] = useState&lt;Cards[] | null&gt;(null)
+36         const [userData, setUserData] = useState&lt;user | null&gt;(null);
+37         const loading = useContext(LoadingContext)
+38
+39         async function eventLogIn() {
+40             let access_token: string | undefined = Cookies.get(&quot;token&quot;);
+41             if (access_token !== undefined) {
+42                 let jwt: { sub: string, iat: number, exp: number, jti: string } = jwtDecode(access_token);
+43                 let email: string = jwt.sub;
+44                 await fetch(`http://localhost:8080/api/event/myEvents`, {
+45                         method: &quot;POST&quot;,
+46                         headers: {
+47                             &quot;Authorization&quot;: `Bearer ${access_token}`,
+48                             &quot;Content-Type&quot;: &quot;application/json&quot;
+49                         },
+50                         body: JSON.stringify({&quot;email&quot;: email})
+51                     }
+52                 ).then((v) =&gt; v.json()).then((v) =&gt; {
+53                     setCard(v);
+54                 }).catch()
+55             }
+56         }
+</code></pre>
+<br/>
+
+<p>This code snippet defines an <code>async</code> function called <code>user_stuff()</code> and uses it within a <code>useEffect</code> hook.</p>
+<p>The main functionality of this code is to make an HTTP request to the <code>http://localhost:8080/api/users/mail</code> endpoint with the <code>Authorization</code> header set to the value of the token obtained from a cookie. It then retrieves the response data as JSON, logs it to the console, and sets the <code>userData</code> state with the obtained data.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappuserpagetsx-2">📄 front/eventify/src/app/user/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">58         async function user_stuff() {
+59             try {
+60                 await fetch(`http://localhost:8080/api/users/mail`,
+61                     {
+62                         headers: {
+63                             &quot;Authorization&quot;: `Bearer ${Cookies.get(&quot;token&quot;)}`
+64                         },
+65                     }
+66                 ).then((userData) =&gt; userData.json()).then((userData) =&gt; {
+67                     console.log(userData)
+68                     setUserData(userData);
+69                 }).catch()
+70             } catch (e: any) {
+71             }
+72         }
+73
+74         useEffect(() =&gt; {
+75             if (!loading) {
+76                 eventLogIn()
+77                 user_stuff()
+78
+79             }
+80         }, []);
+</code></pre>
+<br/>
+
+<p>This code snippet returns a JSX element which renders a main div containing user information and a collection of cards. The user information includes an image, first name, last name, and email. The cards are rendered using a map function to iterate through an array of card objects and create a <code>Card_to_modify</code> component for each card. <a href="card-to-modify.htm">Card to modify</a></p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappuserpagetsx-3">📄 front/eventify/src/app/user/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">82         return (
+83             &lt;div className=&#39;main&#39;&gt;
+84                 &lt;Container fluid className=&quot;user&quot;&gt;
+85
+86                     &lt;img className=&#39;img&#39; src={userData?.image} alt=&#39;&#39;&gt;&lt;/img&gt;
+87                     &lt;div&gt;
+88                         &lt;p className=&#39;name&#39;&gt;{userData?.firstName} {userData?.lastName}&lt;/p&gt;
+89                     &lt;/div&gt;
+90                     &lt;div&gt; {userData?.email}&lt;/div&gt;
+91
+92                 &lt;/Container&gt;
+93
+94                 &lt;div style={{display: &quot;flex&quot;, flexWrap: &quot;wrap&quot;, justifyContent: &quot;center&quot;}}&gt;
+95                     {Array.isArray(card) &amp;&amp; card?.map((card: Cards, id: number) =&gt; {
+96                             return (&lt;Card_to_modify
+97                                     key={id}
+98                                     owner={card.owner}
+99                                     title={card.title}
+100                                    image={card.image}
+101                                    place={card.place}
+102                                    description={card.description}
+103                                    tags={card.tags}
+104                                    datetime={card.datetime}
+105                                    id={card.id}
+106                                /&gt;
+107                            )
+108                        }
+109                    )
+110                    }
+111                &lt;/div&gt;
+112            &lt;/div&gt;
+113        )
+114    }
+115
+</code></pre>
+<br/>

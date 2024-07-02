@@ -1,0 +1,190 @@
+<hr>
+
+<p>The next part explain how we handled the sign up form:</p>
+<br/>
+
+<p>This code snippet includes two functions.</p>
+<p>The first function, <code>calculateAge</code>, calculates the age based on the given <code>birthday</code> date. It sets the time of the <code>birthday</code> to 0 hours, minutes, seconds, and milliseconds to ensure accurate calculation. Then it calculates the difference in milliseconds between the current date and the <code>birthday</code> date. It creates a new <code>Date</code> object using the calculated milliseconds and returns the absolute value of the difference in years between the new date and the reference year 1970.</p>
+<p>The second function, <code>getFormData</code>, returns an object containing various form data fields. It includes <code>firstname</code>, <code>lastname</code>, <code>email</code>, <code>password</code>, <code>date_of_birth</code> (initialized with the current date), and <code>image</code> (initialized with an empty string).</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappsignuppagetsx">📄 front/eventify/src/app/signup/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">20     // create a function that calculate if you have 18 years old from the date of birth check day, month and year
+21     function calculateAge(birthday: Date) {
+22         birthday.setHours(0)
+23         birthday.setMinutes(0)
+24         birthday.setSeconds(0)
+25         birthday.setMilliseconds(0)
+26         const ageDifMs = Date.now() - birthday.getTime();
+27         const ageDate = new Date(ageDifMs);
+28         return Math.abs(ageDate.getUTCFullYear() - 1970);
+29     }
+30
+31     function getFormData() {
+32         return {
+33             firstname: &#39;&#39;,
+34             lastname: &#39;&#39;,
+35             email: &#39;&#39;,
+36             password: &#39;&#39;,
+37             date_of_birth: new Date(),
+38             image: &quot;&quot;
+39         };
+40     }
+</code></pre>
+<br/>
+
+<p>This code defines a React component <code>Sign_up</code> that exports as the default export. It uses the <code>useRouter</code> hook from the <code>next/router</code> library and the <code>useState</code> and <code>useForm</code> hooks from an unspecified library. The component sets up a form with fields for <code>firstname</code>, <code>lastname</code>, <code>email</code>, <code>password</code>, <code>date_of_birth</code>, and <code>image</code>. The form fields have validation rules defined using functions. The <code>validate</code> object passed to <code>useForm</code> specifies these validation rules, such as minimum and maximum length for <code>firstname</code> and <code>lastname</code>, email format for <code>email</code>, minimum age requirement for <code>date_of_birth</code><swm-token data-swm-token=":front/eventify/src/app/signup/page.tsx:37:1:1:`        date_of_birth: new Date(),`"/>, and a password pattern for <code>password</code>.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappsignuppagetsx-1">📄 front/eventify/src/app/signup/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">42     export default function Sign_up() {
+43         const router = useRouter()
+44         const [error, setError] = useState&lt;string | null&gt;(null);
+45         const form = useForm&lt;{
+46             firstname: string,
+47             lastname: string,
+48             email: string,
+49             password: string,
+50             date_of_birth: Date,
+51             image: File
+52         }&gt;({
+53             initialValues: getFormData(),
+54             // functions will be used to validate values at corresponding key
+55             validate: {
+56                 firstname: hasLength({min: 2, max: 15}, &#39;Name must be 2-15 characters long&#39;),
+57                 lastname: hasLength({min: 2, max: 15}, &#39;Name must be 2-15 characters long&#39;),
+58                 // image: hasLength({min: 1, max: 5}, &#39;You must upload at least one image&#39;),
+59                 // image: (image: Array&lt;File&gt;) =&gt; {
+60                 //     if (image.length !== 2) {
+61                 //         return &#39;Devi caricare esattamente una immagine&#39;;
+62                 //     }
+63                 //     return null;},
+64                 email: (value: string) =&gt; (/^\S+@\S+$/.test(value) ? null : &#39;Invalid email&#39;),
+65                 date_of_birth: (dateOfBirth: Date) =&gt; {
+66                     return calculateAge(dateOfBirth) &gt;= 18 ? null : &#39;Devi avere almeno 18 anni per registrarti&#39;;
+67                 },
+68                 password: (value) =&gt; (
+69                     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[$&amp;+,:;=?@#|&#39;&lt;&gt;.^*()%!-]).{6,}$/.test(value)
+70                         ? null
+71                         : &#39;Invalid password: at least 6 characters, one Uppercase letter, one number and one special character&#39;
+72                 ),
+73             }
+74         });
+</code></pre>
+<br/>
+
+<p>This code defines a <code>signup</code> function that sends a POST request to a registration endpoint with form data. It also includes event listeners and a helper function to handle form submission when the Enter key is pressed.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappsignuppagetsx-2">📄 front/eventify/src/app/signup/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">76         async function signup() {
+77             if (form.isValid()) {
+78                 const url = &quot;http://localhost:8080/api/v1/auth/register&quot;
+79                 let a: string = await getBase64(form.values.image)
+80                 try {
+81                     await fetch(url, {
+82                             method: &quot;POST&quot;,
+83                             headers: {
+84                                 &quot;Content-Type&quot;: &quot;application/json&quot;,
+85                                 // &quot;Authorization&quot;: `Bearer ${Cookies.get(&quot;token&quot;)}`
+86                             },
+87                             body: JSON.stringify({...form.values, image: a})
+88                         }
+89                     ).then((v) =&gt; {
+90                         if (v.url !== url) {
+91                             return null
+92                         }
+93                         return v.json()
+94                     }).then((v) =&gt; {
+95                         if (v.error === &quot;mail already present&quot;) {
+96                             setError(&quot;mail already present&quot;)
+97                         }
+98                         if (v.error === null) {
+99                             router.push(&quot;/login&quot;)
+100                        }
+101                    }).catch(error =&gt; {
+102                            setError(&quot;Email already being used&quot;);
+103                        }
+104                    )
+105                } catch (e: any) {
+106                }
+107            }
+108        }
+109
+110        const sendWithEnter = (e: any) =&gt; {
+111            if (e.key === &quot;Enter&quot;) {
+112                e.preventDefault()
+113                signup().catch();
+114            }
+115        }
+116
+117        useEffect(() =&gt; {
+118            document.addEventListener(&quot;keydown&quot;, sendWithEnter)
+119            return () =&gt; {
+120                document.removeEventListener(&quot;keydown&quot;, sendWithEnter)
+121            }
+122        }, [])
+123
+</code></pre>
+<br/>
+
+<p>This code snippet defines a React component that renders a sign-up form. It includes various input fields such as first name, last name, profile picture, date of birth, email, and password. The form includes validation and submission functionality. The main functionality of this code is to render a sign-up form with input fields and handle form submission.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappsignuppagetsx-3">📄 front/eventify/src/app/signup/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">124        return (
+125            &lt;div className=&#39;sign&#39;&gt;
+126                &lt;Container size={420} my={40}&gt;
+127                    &lt;form onSubmit={form.onSubmit(signup)}&gt;
+128                        &lt;Title
+129                            align=&quot;center&quot;
+130                            sx={(theme) =&gt; ({fontFamily: `Greycliff CF, ${theme.fontFamily}`, fontWeight: 900})}
+131                        &gt;
+132                            Welcome!
+133                        &lt;/Title&gt;
+134                        &lt;Paper withBorder shadow=&quot;md&quot; p={30} mt={30} radius=&quot;md&quot; className={&#39;paper&#39;}&gt;
+135                            &lt;TextInput label=&quot;First name&quot; placeholder=&quot;Franco&quot;
+136                                       required {...form.getInputProps(&#39;firstname&#39;)}/&gt;
+137                            &lt;TextInput label=&quot;Last Name&quot; placeholder=&quot;Pippo&quot; required {...form.getInputProps(&#39;lastname&#39;)}/&gt;
+138                            &lt;FileInput
+139                                placeholder=&quot;Your image&quot;
+140                                label=&quot;Profile picture&quot;
+141                                accept=&quot;image/png,image/jpeg&quot;
+142                                required
+143                                {...form.getInputProps(&#39;image&#39;)}
+144                            /&gt;
+145                            &lt;DateInput
+146                                valueFormat=&quot;DD MMM YYYY&quot;
+147                                label=&quot;Date of birth&quot;
+148                                placeholder=&quot;Date input&quot;
+149                                description=&quot;Must be at least 18 years old&quot;
+150                                maw={400}
+151                                mx=&quot;auto&quot;
+152                                {...form.getInputProps(&#39;date_of_birth&#39;)}
+153                                required
+154                            /&gt;
+155                            &lt;TextInput label=&quot;Email&quot; placeholder=&quot;you@gmail.com&quot; required {...form.getInputProps(&#39;email&#39;)}/&gt;
+156                            {error &amp;&amp; &lt;div className=&quot;error&quot;&gt;{error} &lt;/div&gt;}
+157                            &lt;div className=&#39;Password&#39;&gt;
+158                                &lt;PasswordInput
+159                                    required {...form.getInputProps(&#39;password&#39;)}
+160                                    label=&quot;Your password&quot;
+161                                    placeholder=&quot;Your password&quot;
+162                                /&gt;
+163                            &lt;/div&gt;
+164                            &lt;Button variant=&quot;outline&quot; mt=&quot;sm&quot; type=&quot;submit&quot; onClick={() =&gt; signup()}&gt;
+165                                Sign up
+166                            &lt;/Button&gt;
+167                        &lt;/Paper&gt;
+168                    &lt;/form&gt;
+169                &lt;/Container&gt;
+170            &lt;/div&gt;
+171        )
+172    }
+173
+</code></pre>
+<br/>

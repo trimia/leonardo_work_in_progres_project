@@ -1,0 +1,283 @@
+<hr>
+
+<p>This is how we handled the login:</p>
+<br/>
+
+<p>This code snippet defines a <code>Login</code> component that sets up various states and variables related to user login functionality, including <code>errors</code>, <code>router</code>, <code>mail</code>, <code>password</code>, <code>forgotPass</code>, and <code>error</code>.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapploginpagetsx">📄 front/eventify/src/app/login/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">9      export default function Login() {
+10         const errors = [&quot;user not found&quot;,]
+11         const router = useRouter()
+12         const [mail, setMail] = useState&lt;string&gt;(&quot;&quot;)
+13         const [password, setPassword] = useState&lt;string&gt;(&quot;&quot;)
+14         const [forgotPass, setForgotPass] = useState&lt;boolean&gt;(false)
+15         const [error, setError] = useState&lt;string&gt;(&quot;&quot;)
+16
+</code></pre>
+<br/>
+
+<p>Whenever someone logs in the app, it creates a token which contains the information, such the email, and keep the user logged.</p>
+<br/>
+
+<p>This code snippet sends a login request to a specified URL using the fetch function. It sends a POST request with the email and password as the request body. If the response status is 200, it retrieves the response data and stores the access token and refresh token in cookies. Finally, it navigates to the home page using the <code>router.push</code> function.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapploginpagetsx-1">📄 front/eventify/src/app/login/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">17         async function sendLogIn(): Promise&lt;void&gt; {
+18             const url: string = &quot;http://localhost:8080/api/v1/auth/authenticate&quot;
+19             try {
+20             const response = await fetch(url, {
+21                     method: &quot;POST&quot;,
+22                     headers: {&quot;Content-Type&quot;: &quot;application/json&quot;},
+23                     body: JSON.stringify({&quot;email&quot;: mail, &quot;password&quot;: password})
+24             });
+25             if (response.status !== 200) {
+26                 return;
+27             }
+28                 const data = await response.json();
+29
+30                 console.log(data)
+31                 // Store the token in cookies
+32                 if (data.access_token) {
+33                     Cookies.set(&#39;token&#39;, data.access_token, {path:&quot;/&quot;, sameSite: &quot;Lax&quot;,  expires: jwtDecode(data.access_token).exp }); // Token expires in 1 day
+34                 }
+35                 if(data.refresh_token)
+36                 {
+37                     Cookies.set(&#39;refresh_token&#39;, data.refresh_token, {path:&quot;/&quot;, sameSite: &quot;Lax&quot;,  expires: jwtDecode(data.refresh_token).exp });
+38                 }
+39                 // Navigate to the home page or do any other desired action
+40                 router.push(&quot;../home&quot;);
+41             } catch (error) {
+42             }
+43         }
+</code></pre>
+<br/>
+
+<p>This code snippet defines an <code>async</code> function <code>sendForgotPassword</code> that sends a POST request to a specified URL (<code>&quot;http://localhost:8080/forgot_password&quot;</code>) with a JSON payload containing an email address. It uses the <code>fetch</code> function to make the HTTP request. If the response text is &quot;user not found&quot;, it sets an error state using the <code>setError</code> function.</p>
+<p>Additionally, the code snippet includes a <code>sendWithEnter</code> function that is called when a key is pressed. If the pressed key is &quot;Enter&quot;, it prevents the default behavior and calls the <code>sendLogIn</code> function.</p>
+<p>Lastly, the code snippet uses the <code>useEffect</code> hook to add an event listener for the &quot;keydown&quot; event when the component mounts. It calls the <code>sendWithEnter</code> function when a key is pressed. The event listener is removed when the component unmounts.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapploginpagetsx-2">📄 front/eventify/src/app/login/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">44
+45         async function sendForgotPassword() {
+46             const url = &quot;http://localhost:8080/forgot_password&quot;
+47             await fetch(url, {
+48                     method: &quot;POST&quot;,
+49                     headers: {&quot;Content-Type&quot;: &quot;application/json&quot;},
+50                     body: JSON.stringify({&quot;email&quot;: mail})
+51                 }
+52             ).then((v) =&gt; {
+53                 return v.text()
+54             }).then((v) =&gt; {
+55                 if (v === &quot;user not found&quot;) {
+56                     setError(v)
+57                 }
+58             }).catch()
+59         }
+60
+61         const sendWithEnter = (e: any) =&gt; {
+62             if (e.key === &quot;Enter&quot;) {
+63                 e.preventDefault()
+64                 sendLogIn().catch();
+65             }
+66         }
+67
+68         useEffect(() =&gt; {
+69             document.addEventListener(&quot;keydown&quot;, sendWithEnter)
+70             return () =&gt; {
+71                 document.removeEventListener(&quot;keydown&quot;, sendWithEnter)
+72             }
+73         }, [])
+74
+</code></pre>
+<br/>
+
+<p>This code snippet is a React component that renders a login form. It includes input fields for email and password, as well as options for forgot password and creating a new account. The main functionality of this code is to handle user input and perform actions such as logging in or resetting a password.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapploginpagetsx-3">📄 front/eventify/src/app/login/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">74
+75         return (
+76             &lt;Container size={420} my={40}&gt;
+77                 &lt;Title
+78                     align=&quot;center&quot;
+79                     sx={(theme) =&gt; ({fontFamily: `Greycliff CF, ${theme.fontFamily}`, fontWeight: 900})}
+80                 &gt;
+81                     {!forgotPass ? &quot;Welcome back!&quot; : &quot;Reset password&quot;}
+82                 &lt;/Title&gt;
+83                 &lt;Text color=&quot;dimmed&quot; size=&quot;sm&quot; align=&quot;center&quot; mt={5}&gt;
+84                     Do not have an account yet?{&#39; &#39;}
+85                     &lt;Anchor size=&quot;sm&quot; component=&quot;button&quot; onClick={() =&gt; router.push(&#39;/signup&#39;)}&gt;
+86                         Create account
+87                     &lt;/Anchor&gt;
+88                 &lt;/Text&gt;
+89                 &lt;Paper withBorder shadow=&quot;md&quot; p={30} mt={30} radius=&quot;md&quot; className={&#39;paper&#39;}&gt;
+90                     &lt;TextInput error={error === errors[0] ? error : null} value={mail}
+91                                onChange={(e) =&gt; setMail(e.target.value)} label=&quot;Email&quot;
+92                                placeholder=&quot;youremail@mantine.dev&quot; required/&gt;
+93                     {!forgotPass &amp;&amp;
+94                         &lt;PasswordInput
+95                             // onKeyDown={sendWithEnter}
+96                                        onChange={(e) =&gt; setPassword(e.target.value)} label=&quot;Password&quot;
+97                                        placeholder=&quot;Your password&quot; required mt=&quot;md&quot;/&gt;}
+98                     &lt;Group position=&quot;apart&quot; mt=&quot;lg&quot;&gt;
+99                         {/*{!forgotPass ? &lt;Checkbox label=&quot;Remember me&quot;/&gt; : &lt;div&gt;&lt;/div&gt;}*/}
+100                        &lt;Anchor component=&quot;button&quot; size=&quot;sm&quot;
+101                                onClick={() =&gt; setForgotPass((prevState: boolean) =&gt; !prevState)}&gt;
+102                            {!forgotPass ? &quot;Forgot password?&quot; : &quot;Login&quot;}
+103                        &lt;/Anchor&gt;
+104                        {forgotPass &amp;&amp; &lt;div&gt;&lt;/div&gt;}
+105                    &lt;/Group&gt;
+106                    {!forgotPass ?
+107                        &lt;Button onClick={() =&gt; sendLogIn()} variant=&quot;outline&quot; fullWidth mt=&quot;xl&quot;&gt;
+108                            Sign in
+109                        &lt;/Button&gt; :
+110                        &lt;Button onClick={() =&gt; sendForgotPassword()} variant=&quot;outline&quot; fullWidth mt=&quot;xl&quot; id={&quot;ciao&quot;}&gt;
+111                            Send password
+112                        &lt;/Button&gt;
+113                    }
+114                &lt;/Paper&gt;
+115            &lt;/Container&gt;
+116        );
+117    }
+118
+</code></pre>
+<br/>
+
+<p>The next part explain how we handled the sign up form:</p>
+<br/>
+
+<p>This code snippet includes two functions.</p>
+<p>The first function, <code>calculateAge</code>, calculates the age based on the given <code>birthday</code> date. It sets the time of the <code>birthday</code> to 0 hours, minutes, seconds, and milliseconds to ensure accurate calculation. Then it calculates the difference in milliseconds between the current date and the <code>birthday</code> date. It creates a new <code>Date</code> object using the calculated milliseconds and returns the absolute value of the difference in years between the new date and the reference year 1970.</p>
+<p>The second function, <code>getFormData</code>, returns an object containing various form data fields. It includes <code>firstname</code>, <code>lastname</code>, <code>email</code>, <code>password</code>, <code>date_of_birth</code> (initialized with the current date), and <code>image</code> (initialized with an empty string).</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappsignuppagetsx">📄 front/eventify/src/app/signup/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">20     // create a function that calculate if you have 18 years old from the date of birth check day, month and year
+21     function calculateAge(birthday: Date) {
+22         birthday.setHours(0)
+23         birthday.setMinutes(0)
+24         birthday.setSeconds(0)
+25         birthday.setMilliseconds(0)
+26         const ageDifMs = Date.now() - birthday.getTime();
+27         const ageDate = new Date(ageDifMs);
+28         return Math.abs(ageDate.getUTCFullYear() - 1970);
+29     }
+30
+31     function getFormData() {
+32         return {
+33             firstname: &#39;&#39;,
+34             lastname: &#39;&#39;,
+35             email: &#39;&#39;,
+36             password: &#39;&#39;,
+37             date_of_birth: new Date(),
+38             image: &quot;&quot;
+39         };
+40     }
+</code></pre>
+<br/>
+
+<p>This code defines a React component <code>Sign_up</code> that exports as the default export. It uses the <code>useRouter</code> hook from the <code>next/router</code> library and the <code>useState</code> and <code>useForm</code> hooks from an unspecified library. The component sets up a form with fields for <code>firstname</code>, <code>lastname</code>, <code>email</code>, <code>password</code>, <code>date_of_birth</code>, and <code>image</code>. The form fields have validation rules defined using functions. The <code>validate</code> object passed to <code>useForm</code> specifies these validation rules, such as minimum and maximum length for <code>firstname</code> and <code>lastname</code>, email format for <code>email</code>, minimum age requirement for <code>date_of_birth</code><swm-token data-swm-token=":front/eventify/src/app/signup/page.tsx:37:1:1:`        date_of_birth: new Date(),`"/>, and a password pattern for <code>password</code>.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappsignuppagetsx-1">📄 front/eventify/src/app/signup/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">42     export default function Sign_up() {
+43         const router = useRouter()
+44         const [error, setError] = useState&lt;string | null&gt;(null);
+45         const form = useForm&lt;{
+46             firstname: string,
+47             lastname: string,
+48             email: string,
+49             password: string,
+50             date_of_birth: Date,
+51             image: File
+52         }&gt;({
+53             initialValues: getFormData(),
+54             // functions will be used to validate values at corresponding key
+55             validate: {
+56                 firstname: hasLength({min: 2, max: 15}, &#39;Name must be 2-15 characters long&#39;),
+57                 lastname: hasLength({min: 2, max: 15}, &#39;Name must be 2-15 characters long&#39;),
+58                 // image: hasLength({min: 1, max: 5}, &#39;You must upload at least one image&#39;),
+59                 // image: (image: Array&lt;File&gt;) =&gt; {
+60                 //     if (image.length !== 2) {
+61                 //         return &#39;Devi caricare esattamente una immagine&#39;;
+62                 //     }
+63                 //     return null;},
+64                 email: (value: string) =&gt; (/^\S+@\S+$/.test(value) ? null : &#39;Invalid email&#39;),
+65                 date_of_birth: (dateOfBirth: Date) =&gt; {
+66                     return calculateAge(dateOfBirth) &gt;= 18 ? null : &#39;Devi avere almeno 18 anni per registrarti&#39;;
+67                 },
+68                 password: (value) =&gt; (
+69                     /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[$&amp;+,:;=?@#|&#39;&lt;&gt;.^*()%!-]).{6,}$/.test(value)
+70                         ? null
+71                         : &#39;Invalid password: at least 6 characters, one Uppercase letter, one number and one special character&#39;
+72                 ),
+73             }
+74         });
+</code></pre>
+<br/>
+
+<p>This code defines a <code>signup</code> function that sends a POST request to a registration endpoint with form data. It also includes event listeners and a helper function to handle form submission when the Enter key is pressed.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcappsignuppagetsx-2">📄 front/eventify/src/app/signup/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">76         async function signup() {
+77             if (form.isValid()) {
+78                 const url = &quot;http://localhost:8080/api/v1/auth/register&quot;
+79                 let a: string = await getBase64(form.values.image)
+80                 try {
+81                     await fetch(url, {
+82                             method: &quot;POST&quot;,
+83                             headers: {
+84                                 &quot;Content-Type&quot;: &quot;application/json&quot;,
+85                                 // &quot;Authorization&quot;: `Bearer ${Cookies.get(&quot;token&quot;)}`
+86                             },
+87                             body: JSON.stringify({...form.values, image: a})
+88                         }
+89                     ).then((v) =&gt; {
+90                         if (v.url !== url) {
+91                             return null
+92                         }
+93                         return v.json()
+94                     }).then((v) =&gt; {
+95                         if (v.error === &quot;mail already present&quot;) {
+96                             setError(&quot;mail already present&quot;)
+97                         }
+98                         if (v.error === null) {
+99                             router.push(&quot;/login&quot;)
+100                        }
+101                    }).catch(error =&gt; {
+102                            setError(&quot;Email already being used&quot;);
+103                        }
+104                    )
+105                } catch (e: any) {
+106                }
+107            }
+108        }
+109
+110        const sendWithEnter = (e: any) =&gt; {
+111            if (e.key === &quot;Enter&quot;) {
+112                e.preventDefault()
+113                signup().catch();
+114            }
+115        }
+116
+117        useEffect(() =&gt; {
+118            document.addEventListener(&quot;keydown&quot;, sendWithEnter)
+119            return () =&gt; {
+120                document.removeEventListener(&quot;keydown&quot;, sendWithEnter)
+121            }
+122        }, [])
+123
+</code></pre>
+<br/>

@@ -1,0 +1,154 @@
+<hr>
+
+<p>The following part explain how the homepage is rendered and how essentially it works:</p>
+<br/>
+
+<p>This code defines an interface called <code>Cards</code> which specifies the structure and data types of properties for a card object (<a href="event-handling.htm">Events handling</a>). The <code>Cards</code> interface includes properties such as <code>id</code>, <code>title</code>, <code>owner</code>, <code>description</code>, <code>place</code>, <code>datetime</code>, <code>image</code>, and <code>tags</code>. The <code>id</code> property is of type <code>number</code>, <code>title</code>, <code>owner</code>, <code>description</code>, <code>place</code>, and <code>datetime</code> properties are of type <code>string</code>, <code>image</code> property is an array of strings, and <code>tags</code> property is an array of strings or <code>null</code>.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapphomepagetsx">📄 front/eventify/src/app/home/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">12     export interface Cards {
+13         id: number
+14         title: string;
+15         owner: string;
+16         description: string;
+17         place: string;
+18         datetime: string;
+19         image: string[];
+20         tags: string[] | null;
+21     }
+</code></pre>
+<br/>
+
+<p>This code snippet exports a default function called <code>Home</code>. Within this function, it declares and initializes several variables using the <code>useState</code> and <code>useContext</code> hooks. The <code>tab</code> variable is set to a string or <code>null</code>, the <code>router</code> variable is assigned the value returned by the <code>useRouter</code> hook, and the <code>card</code> variable is set to an array of <code>Cards</code> or <code>null</code>. Additionally, it declares a <code>loading</code> variable that uses the <code>useContext</code> hook.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapphomepagetsx-1">📄 front/eventify/src/app/home/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">23     export default function Home() {
+24         const [tab, setTab] = useState&lt;string | null&gt;(&quot;gallery&quot;)
+25         const router = useRouter()
+26         const [card, setCard] = useState&lt;Cards[] | null&gt;(null)
+27         const loading = useContext(LoadingContext)
+</code></pre>
+<br/>
+
+<p>This code snippet defines an <code>async</code> function <code>getAllEvent</code> that makes an HTTP GET request to a specific URL (<code>http://localhost:8080/api/event/events</code>). It includes an <code>Authorization</code> header that contains a bearer token retrieved from a cookie. The response is then parsed as JSON and the resulting data is passed to the <code>setCard</code> function.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapphomepagetsx-2">📄 front/eventify/src/app/home/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">58         const getAllEvent = async () =&gt; {
+59             try {
+60                 await fetch(`http://localhost:8080/api/event/events`,
+61                     {
+62                         headers: {
+63                             &quot;Authorization&quot;: `Bearer ${Cookies.get(&quot;token&quot;)}`
+64                         },
+65                     }
+66                 ).then((v) =&gt; {
+67                     return v.json()
+68                 }).then((v) =&gt; {
+69                     setCard(v);
+70                 }).catch()
+71             } catch (e: any) {
+72             }
+73         }
+</code></pre>
+<br/>
+
+<p>This code snippet defines an <code>async</code> function <code>getRegisteredEvent</code> that retrieves a user&#39;s registered event details. It extracts the access token from a cookie, decodes it to retrieve the user&#39;s email, and makes a POST request to a specific endpoint with the email as a payload. The request includes the access token in the <code>Authorization</code> header and the payload is sent as a JSON string. The response is parsed as JSON and the result is used to set the <code>card</code> state.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapphomepagetsx-3">📄 front/eventify/src/app/home/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">75         const getRegisteredEvent = async () =&gt; {
+76             let access_token: string | undefined = Cookies.get(&quot;token&quot;);
+77             if (access_token !== undefined) {
+78                 let jwt: { sub: string, iat: number, exp: number, jti: string } = jwtDecode(access_token);
+79                 let email: string = jwt.sub;
+80                 await fetch(`http://localhost:8080/api/event/findEventSubscribed`,
+81                     {
+82                         method: &quot;POST&quot;,
+83                         headers: {
+84                             &quot;Authorization&quot;: `Bearer ${access_token}`,
+85                             &quot;Content-Type&quot;: &quot;application/json&quot;
+86                         },
+87                         body: JSON.stringify({&quot;email&quot;: email})
+88                     }
+89                 ).then((v) =&gt; v.json()).then((v) =&gt; {
+90                     // console.log(v);
+91                     setCard(v);
+92                     // setOpened(true);
+93                 }).catch()
+94             }
+95         }
+96
+</code></pre>
+<br/>
+
+<p>This code snippet uses the <code>useLayoutEffect</code> hook to perform a specific action based on the value of the <code>tab</code> variable. If the <code>tab</code> is set to &quot;gallery&quot;, it calls the <code>getAllEvent</code> function. Otherwise, it calls the <code>getRegisteredEvent</code> function. The action is only performed when the <code>loading</code> variable is not true.</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapphomepagetsx-4">📄 front/eventify/src/app/home/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">97         useLayoutEffect(() =&gt; {
+98             if(!loading) {
+99                 if (tab === &quot;gallery&quot;) {
+100                    getAllEvent()
+101                } else {
+102                    getRegisteredEvent()
+103                }
+104            }
+105        }, [tab]);
+</code></pre>
+<br/>
+
+<p>This code snippet renders a component that displays a div with a className of &quot;home&quot;. Inside this div, it renders a search component (<a href="search-bar.htm">Search bar</a>), a tab component with three tabs, and a list of cards. The card list is generated dynamically based on the <code>card</code> array. Each card has various properties such as place, owner, title, image, description, tags, datetime, and id. The tab component allows the user to switch between different views. In the home, there is a button that allows you to create event ()</p>
+<!-- NOTE-swimm-snippet: the lines below link your snippet to Swimm -->
+<h3 id="📄-fronteventifysrcapphomepagetsx-5">📄 front/eventify/src/app/home/page.tsx</h3>
+<!-- collapsed -->
+
+<pre><code class="language-tsx">107        return (
+108            &lt;div className=&quot;home&quot; style={{position: &quot;relative&quot;, height: &quot;100%&quot;}}&gt;
+109                &lt;Search getAllEvent={getAllEvent} setCard={setCard}&gt;&lt;/Search&gt;
+110                &lt;Tabs value={tab} onTabChange={setTab} variant=&quot;pills&quot; defaultValue=&quot;gallery&quot;&gt;
+111                    &lt;Tabs.List className={&quot;tab_list&quot;}&gt;
+112                        &lt;Tabs.Tab value=&quot;gallery&quot; icon={&lt;IconConfetti size=&quot;0.8rem&quot;/&gt;}&gt;All Events&lt;/Tabs.Tab&gt;
+113                        &lt;Tabs.Tab value=&quot;messages&quot; icon={&lt;IconDeviceWatch size=&quot;0.8rem&quot;/&gt;}&gt;Events to attend&lt;/Tabs.Tab&gt;
+114                        &lt;Tabs.Tab onClick={() =&gt; router.push(&#39;../create_events&#39;)} value=&quot;create&quot;
+115                                  icon={&lt;IconEdit size=&quot;0.8rem&quot;/&gt;}&gt;Create your event&lt;/Tabs.Tab&gt;
+116                    &lt;/Tabs.List&gt;
+117                    &lt;div style={{display: &quot;flex&quot;, flexWrap: &quot;wrap&quot;, justifyContent: &quot;center&quot;}}&gt;
+118                        {Array.isArray(card) &amp;&amp; card?.map((card: Cards, id: number) =&gt; {
+119                                return (&lt;MyCard key={id}
+120                                                place={card.place}
+121                                                owner={card.owner}
+122                                                title={card.title}
+123                                                image={card.image}
+124                                                description={card.description}
+125                                                tags={card.tags}
+126                                                datetime={card.datetime}
+127                                                id={card.id}/&gt;
+128                                )
+129                            }
+130                        )}
+131                    &lt;/div&gt;
+132                    &lt;div className=&#39;create-container&#39;&gt;
+133                        &lt;Button className=&#39;create&#39; size=&#39;md&#39; variant=&quot;filled&quot;
+134                                onClick={() =&gt; router.push(&#39;../create_events&#39;)}&gt;
+135                            Create your event!
+136                            &lt;IconEdit&gt;&lt;/IconEdit&gt;
+137                        &lt;/Button&gt;
+138                    &lt;/div&gt;
+139                &lt;/Tabs&gt;
+140            &lt;/div&gt;
+141        )
+142    }
+</code></pre>
+<br/>
+
+<br/>
+
+<br/>
